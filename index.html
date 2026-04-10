@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Micro Foco - Elite Blindado</title>
+    <title>Micro Foco - Elite Mobile</title>
     <style>
         :root {
             --bg: #ffffff; --text: #000000; --hover-bg: rgba(0,0,0,0.05);
@@ -20,9 +20,13 @@
             --ticker-bg: rgba(255,255,255,0.03); --border-col: #e0e0e0;
         }
 
-        body.overtime { background-color: var(--text) !important; color: var(--bg) !important; }
-        body.overtime *:not(.timer-huge, #tickerWrapper) { border-color: var(--danger) !important; color: var(--danger) !important; }
-        body.overtime .timer-huge { color: var(--danger) !important; }
+        /* CORREÇÃO DO ALERTA (OVERTIME) COM INVERSÃO FORÇADA */
+        body:not(.dark-mode).overtime { background-color: #121212 !important; color: #ffffff !important; }
+        body.dark-mode.overtime { background-color: #ffffff !important; color: #000000 !important; }
+        body.overtime *:not(.timer-huge, #tickerWrapper, .urna-btn) { border-color: #ff3b30 !important; }
+        body.overtime .timer-huge { color: #ff3b30 !important; }
+        body.overtime .btn-tactical, body.overtime .history-box { border-color: #ff3b30 !important; }
+        body.overtime .subject-tag.active { background: #ff3b30 !important; color: #ffffff !important; border-color: #ff3b30 !important;}
 
         * { box-sizing: border-box; }
         body { font-family: 'Courier New', Courier, monospace; background-color: var(--bg); color: var(--text); margin: 0; display: flex; height: 100vh; width: 100vw; overflow: hidden; transition: flex-direction 0.4s ease, background-color 0.3s, color 0.3s; }
@@ -31,26 +35,29 @@
         .blur-target { transition: filter 0.3s ease; }
         .blur-target.active { filter: blur(8px); pointer-events: none; user-select: none; }
 
-        /* LATERAIS */
-        .sidebar, .right-panel { flex: 0 0 var(--col-base); height: 100%; border-right: 2px solid var(--border-col); padding: 20px; display: flex; flex-direction: column; background: var(--bg); z-index: 10; }
+        /* LATERAIS (DESKTOP) */
+        .sidebar, .right-panel { flex: 0 0 var(--col-base); height: 100%; border-right: 2px solid var(--border-col); padding: 20px; display: flex; flex-direction: column; background: var(--bg); z-index: 10; transition: border-color 0.3s; }
         body.inverted .sidebar { border-right: none; border-left: 2px solid var(--border-col); }
         body.inverted .right-panel { border-left: none; border-right: 2px solid var(--border-col); }
         .right-panel { border-right: none; border-left: 2px solid var(--border-col); }
 
-        .main-content { flex: 1 1 auto; display: flex; flex-direction: column; position: relative; background: var(--bg); overflow: hidden; }
+        .main-content { flex: 1 1 auto; display: flex; flex-direction: column; position: relative; background: transparent; overflow: hidden; }
 
         /* TICKER */
-        .ticker-container { width: 100%; height: 35px; border-bottom: 2px solid var(--border-col); overflow: hidden; display: flex; align-items: center; background: var(--ticker-bg); flex-shrink: 0; }
+        .ticker-container { width: 100%; height: 35px; border-bottom: 2px solid var(--border-col); overflow: hidden; display: flex; align-items: center; background: var(--ticker-bg); flex-shrink: 0; transition: border-color 0.3s; }
         .ticker-wrapper { display: flex; white-space: nowrap; animation: ticker 40s linear infinite; }
         @keyframes ticker { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
         .ticker-item { margin-right: 50px; font-size: 11px; font-weight: bold; }
 
         /* CRONÔMETRO */
         .timer-area { flex-grow: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 10px; }
-        .timer-huge { font-size: clamp(60px, 10vw, 140px); font-weight: bold; margin: 5px 0; letter-spacing: -5px; font-variant-numeric: tabular-nums; }
+        .timer-huge { font-size: clamp(60px, 10vw, 140px); font-weight: bold; margin: 5px 0; letter-spacing: -5px; font-variant-numeric: tabular-nums; transition: color 0.3s;}
         .target-nav { display: flex; gap: 8px; margin-bottom: 5px; flex-wrap: wrap; justify-content: center; }
         .target-nav button { font-size: 11px; }
         #customTime { width: 60px; background: transparent; color: var(--text); border: none; border-bottom: 1px solid var(--text); text-align: center; font-family: inherit; }
+
+        /* CONFIGS (DESKTOP) */
+        .config-bar { font-size: 10px; margin-bottom: 5px; font-weight: bold; }
 
         /* URNA E TÁTICO */
         .tactical-container { flex-grow: 1; width: 100%; display: flex; flex-direction: column; }
@@ -61,7 +68,7 @@
         .urna-btn { display: none; width: 100%; flex-grow: 1; border: none; font-family: inherit; font-weight: bold; cursor: pointer; color: #fff; font-size: clamp(14px, 2.5vw, 20px); }
         .urna-btn.acerto { background: var(--success); }
         .urna-btn.erro { background: var(--danger); border-top: 1px solid var(--border-col); border-bottom: 1px solid var(--border-col); }
-        .urna-btn.cancel { background: var(--bg); color: var(--text); font-size: 12px; flex-grow: 0; padding: 15px; }
+        .urna-btn.cancel { background: transparent; color: var(--text); font-size: 12px; flex-grow: 0; padding: 15px; }
         .urna-btn.cancel:hover { background: var(--hover-bg); text-decoration: underline; }
 
         body.state-paused .btn-play { display: block; }
@@ -69,8 +76,8 @@
         .urna-active .btn-tactical { display: none !important; }
         .urna-active .urna-btn { display: block; }
 
-        /* HISTÓRICO */
-        .history-box { width: 100%; max-width: 500px; height: 30vh; border: 2px solid var(--border-col); overflow-y: auto; padding: 10px; font-size: 12px; margin: 10px auto; text-align: left; }
+        /* HISTÓRICO E COMPONENTES */
+        .history-box { width: 100%; max-width: 500px; height: 30vh; border: 2px solid var(--border-col); overflow-y: auto; padding: 10px; font-size: 12px; margin: 10px auto; text-align: left; transition: border-color 0.3s;}
         .session-item { border-bottom: 1px dashed var(--border-col); padding: 10px 0; cursor: pointer; }
 
         .study-only { display: none !important; }
@@ -85,32 +92,29 @@
         .modal-box input, .modal-box select { width: 100%; padding: 10px; margin: 15px 0; border: 1px solid var(--border-col); background: var(--bg); color: var(--text); font-family: inherit; font-size: 14px; text-align: center; }
         .modal-box button.btn-solid { border: 2px solid var(--border-col); background: var(--border-col); color: var(--bg); padding: 10px 20px; font-family: inherit; font-weight: bold; cursor: pointer; width: 100%; margin-top: 10px; }
 
-        /* SCROLLBAR DESKTOP */
         .study-panel { height: 40%; padding: 10px 5px 10px 0; display: flex; flex-direction: column; gap: 5px; overflow-y: auto; border-bottom: 2px solid var(--border-col); scroll-behavior: smooth; }
         .study-panel::-webkit-scrollbar { width: 4px; transition: 0.3s; }
         .study-panel::-webkit-scrollbar-thumb { background: rgba(128,128,128,0.2); border-radius: 10px; }
         .study-panel:hover::-webkit-scrollbar { width: 8px; }
         .study-panel:hover::-webkit-scrollbar-thumb { background: var(--border-col); }
 
-        /* ATALHOS UI */
         .shortcut-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border-bottom: 1px dashed var(--border-col); padding-bottom: 5px; font-size: 12px; }
         .key-btn { background: var(--hover-bg); border: 1px solid var(--border-col); color: var(--text); padding: 5px; font-family: inherit; cursor: pointer; font-size: 10px; font-weight: bold; width: 100px; }
-        .key-btn.listening { background: var(--border-col); color: var(--bg); animation: pulse 1s infinite; }
-        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
-
-        /* UTILS */
+        
         .subject-tag { background: none; color: var(--text); border: 1px solid var(--border-col); padding: 8px; font-family: inherit; cursor: pointer; font-size: 11px; text-align: left; }
         .subject-tag.active { background: var(--text) !important; color: var(--bg) !important; }
         .btn-link { background: none; color: var(--text); border: none; text-decoration: underline; cursor: pointer; font-family: inherit; font-size: 10px; padding: 5px; }
         #bottomColorBar { position: fixed; bottom: 0; left: 0; width: 100%; height: 8px; z-index: 1000; }
-        .btn-main-mark { border: 2px solid var(--border-col); color: var(--text); background: none; padding: 15px; width: 90%; max-width: 500px; font-family: inherit; font-weight: bold; cursor: pointer; font-size: 16px; }
+        .btn-main-mark { border: 2px solid var(--border-col); color: var(--text); background: none; padding: 15px; width: 90%; max-width: 500px; font-family: inherit; font-weight: bold; cursor: pointer; font-size: 16px; transition: border-color 0.3s;}
         .btn-main-mark:hover { background: var(--border-col); color: var(--bg); }
         .shaking { animation: shake 0.1s infinite; }
         @keyframes shake { 0%{transform: translate(2px,2px)} 50%{transform: translate(-2px,-2px)} }
 
-        /* EXCLUSIVO MOBILE */
-        .mobile-bottom-split { display: none; }
-        .btn-mobile-nav { display: none; }
+        /* ===================================== */
+        /* EXCLUSIVO MOBILE & RESPONSIVIDADE     */
+        /* ===================================== */
+        .mobile-bottom-split, .btn-mobile-nav, .mobile-top-bar, .btn-edit-setup { display: none; }
+        .mobile-config-grid { display: none; }
 
         @media (max-width: 800px) {
             body { flex-direction: column !important; }
@@ -118,14 +122,34 @@
             .sidebar { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 9999; background: var(--bg); padding: 40px 20px; }
             .sidebar.mobile-open { display: flex; }
 
-            .main-content { flex: 1; overflow: hidden; display: flex; flex-direction: column; }
-            .timer-area { padding: 5px; flex-grow: 0; margin-top: 10px; }
-            .timer-huge { font-size: 80px; margin: 0; }
-            .target-nav, .btn-main-mark, #historyList { display: none !important; }
-            
-            .btn-mobile-nav { display: inline-block; font-weight: bold; font-size: 12px; border: 1px solid var(--border-col); padding: 5px 10px; margin: 5px; background: var(--bg); color: var(--text); }
+            /* BARRA DE NAVEGAÇÃO FIXA NO TOPO (NOVA) */
+            .mobile-top-bar { display: flex; justify-content: space-between; padding: 10px; border-bottom: 2px solid var(--border-col); background: var(--bg); z-index: 50; }
+            .btn-mobile-nav { display: inline-block; font-weight: bold; font-size: 12px; border: 1px solid var(--border-col); padding: 8px 12px; background: var(--hover-bg); color: var(--text); border-radius: 4px; cursor: pointer; }
 
-            .mobile-bottom-split { display: flex; flex: 1; width: 100%; border-top: 2px solid var(--border-col); flex-direction: row; }
+            .main-content { flex: 1; overflow: hidden; display: flex; flex-direction: column; }
+            
+            /* ÁREA CENTRAL EXPANDIDA */
+            .timer-area { padding: 5px; flex-grow: 1; margin-top: 5px; justify-content: flex-start; }
+            .timer-huge { font-size: 85px; margin: 10px 0 0 0; }
+            
+            /* Oculta configs velhas do desktop */
+            .target-nav, .btn-main-mark, #historyList, .config-bar { display: none !important; }
+            
+            /* BOTÃO EDITAR MATÉRIA (NOVO) */
+            .btn-edit-setup { display: inline-block; border: 1px solid var(--border-col); background: transparent; color: var(--text); padding: 5px 15px; border-radius: 20px; font-size: 10px; font-family: inherit; font-weight: bold; margin-bottom: 10px; cursor: pointer; transition: 0.2s;}
+            .btn-edit-setup:disabled { opacity: 0.2; pointer-events: none; }
+
+            /* PAINEL DE BOTÕES GIGANTES PARA TOUCH (NOVO) */
+            .mobile-config-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; width: 100%; max-width: 350px; margin: 10px auto; }
+            .touch-toggle { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 12px 5px; border: 2px solid var(--border-col); border-radius: 8px; font-size: 11px; font-family: inherit; font-weight: bold; cursor: pointer; background: transparent; transition: 0.2s; }
+            .touch-toggle input { transform: scale(1.4); margin-bottom: 8px; }
+            .touch-toggle.active-box { background: var(--border-col); color: var(--bg); }
+
+            /* MARCAR REGISTRO GIGANTE */
+            .btn-mobile-mark { border: 2px solid var(--border-col); background: var(--hover-bg); color: var(--text); padding: 15px; width: 100%; max-width: 350px; font-family: inherit; font-weight: bold; font-size: 16px; margin-top: 10px; border-radius: 8px;}
+
+            /* REDUÇÃO DA TELA INFERIOR PARA 35% DA ALTURA */
+            .mobile-bottom-split { display: flex; height: 35vh; min-height: 220px; width: 100%; border-top: 2px solid var(--border-col); flex-direction: row; flex-shrink: 0; }
             body.inverted .mobile-bottom-split { flex-direction: row-reverse; }
 
             .mobile-half { flex: 1; display: flex; flex-direction: column; width: 50%; }
@@ -167,7 +191,7 @@
         <p style="font-size:11px; margin-top:10px;">Tempo Alvo (Minutos):</p>
         <input type="number" id="mobileTargetInput" step="0.5" value="1.5">
         
-        <button class="btn-solid" onclick="confirmMobileSetup()">INICIAR SETUP</button>
+        <button class="btn-solid" onclick="confirmMobileSetup()">SALVAR SETUP</button>
         <button class="btn-link" style="margin-top:15px; opacity: 0.6;" onclick="cancelMobileSetup()">[CANCELAR]</button>
     </div>
 </div>
@@ -188,20 +212,25 @@
 <div class="sidebar blur-target" id="sidebarEl">
     <div style="font-weight:bold; border-bottom:2px solid var(--border-col); padding-bottom:10px; display:flex; justify-content:space-between;">
         <span>ARQUIVOS</span>
-        <button class="btn-mobile-nav" style="margin:0; border:none;" onclick="toggleSidebar()">[X]</button>
+        <button class="btn-mobile-nav" style="margin:0; border:none; padding:0" onclick="toggleSidebar()">[X]</button>
     </div>
     <div class="session-list" id="sessionList"></div>
     <div style="margin-top:auto; text-align:center;">
         <button class="btn-link desktop-only-controls" onclick="openShortcuts()">[ ⚙️ ATALHOS ]</button><br>
-        <button class="btn-link" onclick="toggleDarkMode()">[ MODO ESCURO ]</button><br>
-        <button class="btn-link" onclick="toggleInvert()">[ INVERTER LAYOUT ]</button><br>
+        <button class="btn-link desktop-only-controls" onclick="toggleDarkMode()">[ MODO ESCURO ]</button><br>
+        <button class="btn-link desktop-only-controls" onclick="toggleInvert()">[ INVERTER LAYOUT ]</button><br>
         <button class="btn-link" style="color:var(--danger); margin-top:5px;" onclick="clearAllData()">[LIMPAR DADOS]</button>
     </div>
 </div>
 
 <div class="main-content">
-    <div class="blur-target" style="text-align: center; padding: 5px;">
+    
+    <div class="mobile-top-bar blur-target">
         <button class="btn-mobile-nav" onclick="toggleSidebar()">📂 ARQUIVOS</button>
+        <div>
+            <button class="btn-mobile-nav" onclick="toggleDarkMode()">🌙</button>
+            <button class="btn-mobile-nav" onclick="toggleInvert()">🔄 L/R</button>
+        </div>
     </div>
 
     <div class="ticker-container blur-target study-only" id="tickerContainer">
@@ -215,12 +244,12 @@
     </div>
 
     <div class="timer-area blur-target">
-        <div style="font-size: 10px; margin-bottom: 5px; font-weight: bold;">
-            <label><input type="checkbox" id="autoReset"> AUTO-RESET</label> | 
-            <label><input type="checkbox" id="studyMode" checked onchange="toggleStudyMode()"> MODO ESTUDO</label> 
+        <div class="config-bar">
+            <label><input type="checkbox" id="autoResetDesk" onchange="syncCheck('autoReset')"> AUTO-RESET</label> | 
+            <label><input type="checkbox" id="studyModeDesk" checked onchange="syncCheck('studyMode'); toggleStudyMode()"> MODO ESTUDO</label> 
             <span class="study-only-inline desktop-only-controls"> | 
-                <label><input type="checkbox" id="askAlways"> PERGUNTAR SEMPRE</label> |
-                <label><input type="checkbox" id="runForever"> RODAR SEMPRE</label>
+                <label><input type="checkbox" id="askAlwaysDesk" onchange="syncCheck('askAlways')"> PERGUNTAR SEMPRE</label> |
+                <label><input type="checkbox" id="runForeverDesk" onchange="syncCheck('runForever')"> RODAR SEMPRE</label>
             </span>
         </div>
 
@@ -232,11 +261,23 @@
             <button class="btn-link" onclick="setTarget(3)">[3m]</button>
             <input type="number" id="customTime" placeholder="Outro" step="0.5" onchange="setTarget(this.value)">
         </div>
-        <div id="targetDisplay" style="font-size: 11px; font-weight: bold; opacity: 0.5;">ALVO: Livre</div>
 
+        <div id="targetDisplay" style="font-size: 11px; font-weight: bold; opacity: 0.5;">ALVO: Livre</div>
         <div class="timer-huge" id="display">00:00.0</div>
 
+        <button class="btn-edit-setup study-only" id="btnEditSetupMobile" onclick="openMobileSetup()">✏️ ALTERAR MATÉRIA / TEMPO</button>
+
         <button class="btn-main-mark" onclick="markTime()">MARCAR REGISTRO [M]</button>
+
+        <div class="mobile-config-grid">
+            <label class="touch-toggle"><input type="checkbox" id="autoResetMob" onchange="syncCheck('autoReset')"> AUTO-RESET</label>
+            <label class="touch-toggle active-box"><input type="checkbox" id="studyModeMob" checked onchange="syncCheck('studyMode'); toggleStudyMode()"> ESTUDO</label>
+            <label class="touch-toggle study-only"><input type="checkbox" id="askAlwaysMob" onchange="syncCheck('askAlways')"> URNA</label>
+            <label class="touch-toggle study-only"><input type="checkbox" id="runForeverMob" onchange="syncCheck('runForever')"> PILOTO</label>
+        </div>
+
+        <button class="btn-mobile-mark btn-mobile-nav" onclick="markTime()">⏱️ MARCAR REGISTRO</button>
+
         <div id="dynamicControls" style="margin-top:10px; font-size: 11px;">Aguardando...</div>
         <div class="history-box" id="historyList"></div>
     </div>
@@ -246,7 +287,6 @@
             <div style="font-size: 10px; font-weight: bold; padding: 5px; border-bottom: 1px solid var(--border-col); text-align: center;">REGISTROS</div>
             <div class="mobile-history-box" id="historyListMobile"></div>
         </div>
-        
         <div class="mobile-half right tactical-container" id="tacticalMobile">
             <button class="btn-tactical btn-play" onclick="startTimer()">▶ PLAY</button>
             <button class="btn-tactical" onclick="markTime()">[ TÁTICO ]</button>
@@ -280,7 +320,7 @@
 </div>
 
 <script>
-    const STORAGE_KEY = 'microfoco_db_elite';
+    const STORAGE_KEY = 'microfoco_db_elite_v2';
     let db = { 
         config: { targetSeconds: 0, studyMode: true, askAlways: false, runForever: false, inverted: false, darkMode: false, currentSub: 'GERAL', color: 'transparent',
             shortcuts: { mark: 'KeyM', startFinish: 'Enter', pause: 'Space', acerto: 'ArrowRight', erro: 'ArrowLeft' }
@@ -288,8 +328,22 @@
         sessions: [] 
     };
     let seconds = 0, timerInterval = null, currentMarks = [];
-    let listeningKeyFor = null;
-    let wasRunningBeforeUrna = false; 
+    let listeningKeyFor = null, wasRunningBeforeUrna = false; 
+
+    // Sincroniza Checkboxes Mobile/Desk
+    function syncCheck(idBase) {
+        const desk = document.getElementById(idBase + 'Desk');
+        const mob = document.getElementById(idBase + 'Mob');
+        const isChecked = event.target.checked;
+        if(desk) desk.checked = isChecked;
+        if(mob) {
+            mob.checked = isChecked;
+            if(isChecked) mob.parentElement.classList.add('active-box');
+            else mob.parentElement.classList.remove('active-box');
+        }
+        db.config[idBase] = isChecked;
+        saveDB();
+    }
 
     window.onload = () => {
         try {
@@ -297,9 +351,18 @@
             if(saved) {
                 db = JSON.parse(saved);
                 if(!db.config.shortcuts) db.config.shortcuts = { mark: 'KeyM', startFinish: 'Enter', pause: 'Space', acerto: 'ArrowRight', erro: 'ArrowLeft' };
-                document.getElementById('studyMode').checked = db.config.studyMode;
-                document.getElementById('askAlways').checked = db.config.askAlways;
-                document.getElementById('runForever').checked = db.config.runForever;
+                
+                // Restaura estados visuais
+                ['studyMode', 'autoReset', 'askAlways', 'runForever'].forEach(id => {
+                    const elD = document.getElementById(id + 'Desk');
+                    const elM = document.getElementById(id + 'Mob');
+                    if(elD) elD.checked = db.config[id] || false;
+                    if(elM) {
+                        elM.checked = db.config[id] || false;
+                        if(elM.checked) elM.parentElement.classList.add('active-box');
+                    }
+                });
+
                 if(db.config.inverted) document.body.classList.add('inverted');
                 if(db.config.darkMode) document.body.classList.add('dark-mode');
                 if(db.config.targetSeconds > 0) document.getElementById('targetDisplay').innerText = `ALVO: ${formatDisplay(db.config.targetSeconds)}`;
@@ -314,55 +377,49 @@
     function toggleSidebar() { document.getElementById('sidebarEl').classList.toggle('mobile-open'); }
     function closeModal(id) { document.getElementById(id).style.display = 'none'; listeningKeyFor = null; document.querySelectorAll('.key-btn').forEach(b => b.classList.remove('listening')); }
     
+    function openMobileSetup() {
+        if(timerInterval) return; // Trava de segurança
+        document.getElementById('mobileSetupModal').style.display = 'flex';
+    }
+
     function cancelMobileSetup() {
-        document.getElementById('studyMode').checked = false;
-        toggleStudyMode(true);
+        if(!db.config.currentSub || db.config.currentSub === 'GERAL') {
+            document.getElementById('studyModeDesk').checked = false;
+            document.getElementById('studyModeMob').checked = false;
+            syncCheck('studyMode');
+            toggleStudyMode(true);
+        }
         closeModal('mobileSetupModal');
     }
 
-    function openShortcuts() {
-        document.getElementById('shortcutsModal').style.display = 'flex';
-        ['mark', 'startFinish', 'pause', 'acerto', 'erro'].forEach(act => { document.getElementById('keyBtn_' + act).innerText = db.config.shortcuts[act]; });
-    }
-    function listenKey(action) {
-        listeningKeyFor = action;
-        document.querySelectorAll('.key-btn').forEach(btn => btn.classList.remove('listening'));
-        const btn = document.getElementById('keyBtn_' + action);
-        btn.classList.add('listening'); btn.innerText = "...";
-    }
+    function openShortcuts() { document.getElementById('shortcutsModal').style.display = 'flex'; ['mark', 'startFinish', 'pause', 'acerto', 'erro'].forEach(act => { document.getElementById('keyBtn_' + act).innerText = db.config.shortcuts[act]; }); }
+    function listenKey(action) { listeningKeyFor = action; document.querySelectorAll('.key-btn').forEach(btn => btn.classList.remove('listening')); const btn = document.getElementById('keyBtn_' + action); btn.classList.add('listening'); btn.innerText = "..."; }
 
     window.addEventListener('keydown', (e) => {
         if (listeningKeyFor) { e.preventDefault(); db.config.shortcuts[listeningKeyFor] = e.code; document.getElementById('keyBtn_' + listeningKeyFor).innerText = e.code; document.getElementById('keyBtn_' + listeningKeyFor).classList.remove('listening'); listeningKeyFor = null; saveDB(); return; }
         if(e.target.tagName === 'INPUT' && document.getElementById('saveModal').style.display !== 'flex') return;
 
-        const modalAberto = document.getElementById('saveModal').style.display === 'flex' || 
-                            document.getElementById('mobileSetupModal').style.display === 'flex' ||
-                            document.getElementById('shortcutsModal').style.display === 'flex';
-                            
-        const code = e.code;
+        const modalAberto = document.getElementById('saveModal').style.display === 'flex' || document.getElementById('mobileSetupModal').style.display === 'flex' || document.getElementById('shortcutsModal').style.display === 'flex';
         const urnaAtiva = document.getElementById('tacticalDesktop').classList.contains('urna-active') || document.getElementById('tacticalMobile').classList.contains('urna-active');
 
         if (modalAberto) { 
-            if (code === 'Enter' && document.getElementById('saveModal').style.display === 'flex') confirmSave(); 
-            if (code === 'Escape') {
-                closeModal('saveModal'); closeModal('shortcutsModal');
-                if(document.getElementById('mobileSetupModal').style.display === 'flex') cancelMobileSetup();
-            }
+            if (e.code === 'Enter' && document.getElementById('saveModal').style.display === 'flex') confirmSave(); 
+            if (e.code === 'Escape') { closeModal('saveModal'); closeModal('shortcutsModal'); if(document.getElementById('mobileSetupModal').style.display === 'flex') cancelMobileSetup(); }
             return; 
         }
 
-        if (code === db.config.shortcuts.startFinish) { e.preventDefault(); (seconds === 0 && !timerInterval) ? startTimer() : finishSession(); } 
-        else if (code === db.config.shortcuts.pause) { e.preventDefault(); timerInterval ? pauseTimer() : startTimer(); } 
-        else if (code === db.config.shortcuts.mark) { e.preventDefault(); if(!urnaAtiva) markTime(); } 
-        else if (code === db.config.shortcuts.acerto && urnaAtiva) { e.preventDefault(); submitUrna('ACERTO'); } 
-        else if (code === db.config.shortcuts.erro && urnaAtiva) { e.preventDefault(); submitUrna('ERRO'); }
+        if (e.code === db.config.shortcuts.startFinish) { e.preventDefault(); (seconds === 0 && !timerInterval) ? startTimer() : finishSession(); } 
+        else if (e.code === db.config.shortcuts.pause) { e.preventDefault(); timerInterval ? pauseTimer() : startTimer(); } 
+        else if (e.code === db.config.shortcuts.mark) { e.preventDefault(); if(!urnaAtiva) markTime(); } 
+        else if (e.code === db.config.shortcuts.acerto && urnaAtiva) { e.preventDefault(); submitUrna('ACERTO'); } 
+        else if (e.code === db.config.shortcuts.erro && urnaAtiva) { e.preventDefault(); submitUrna('ERRO'); }
     });
 
     function toggleDarkMode() { db.config.darkMode = !db.config.darkMode; document.body.classList.toggle('dark-mode'); saveDB(); }
     function toggleInvert() { db.config.inverted = !db.config.inverted; document.body.classList.toggle('inverted'); saveDB(); }
     
     function toggleStudyMode(silentLoad = false) {
-        db.config.studyMode = document.getElementById('studyMode').checked;
+        db.config.studyMode = document.getElementById('studyModeDesk').checked;
         if(db.config.studyMode) {
             document.body.classList.add('mode-study');
             if(db.config.color !== 'transparent') document.getElementById('bottomColorBar').style.background = db.config.color;
@@ -379,17 +436,12 @@
         const subjectText = sel.options[sel.selectedIndex].text;
         const colorVar = sel.value;
         const timeInput = document.getElementById('mobileTargetInput').value;
-        
         setSub(subjectText, colorVar);
         if(timeInput > 0) setTarget(timeInput);
         closeModal('mobileSetupModal');
     }
 
-    function setTarget(min) {
-        db.config.targetSeconds = min * 60;
-        document.getElementById('targetDisplay').innerText = `ALVO: ${formatDisplay(db.config.targetSeconds)}`;
-        saveDB();
-    }
+    function setTarget(min) { db.config.targetSeconds = min * 60; document.getElementById('targetDisplay').innerText = `ALVO: ${formatDisplay(db.config.targetSeconds)}`; saveDB(); }
 
     function setSub(name, colorClass) {
         if(!db.config.studyMode || timerInterval) return;
@@ -404,13 +456,18 @@
     function startTimer() {
         if (timerInterval) return;
         document.body.classList.remove('state-paused');
-        document.getElementById('studyPanel').style.opacity = '0.3';
-        document.getElementById('studyPanel').style.pointerEvents = 'none';
+        document.getElementById('studyPanel').style.opacity = '0.3'; document.getElementById('studyPanel').style.pointerEvents = 'none';
+        document.getElementById('btnEditSetupMobile').disabled = true; // Trava botão editar mobile
         timerInterval = setInterval(() => { seconds += 0.1; checkPsychology(); updateDisplay(); }, 100);
         renderControls(true);
     }
 
-    function pauseTimer() { clearInterval(timerInterval); timerInterval = null; document.body.classList.add('state-paused'); renderControls(false); }
+    function pauseTimer() { 
+        clearInterval(timerInterval); timerInterval = null; 
+        document.body.classList.add('state-paused'); 
+        document.getElementById('btnEditSetupMobile').disabled = false; // Libera botão editar
+        renderControls(false); 
+    }
 
     function checkPsychology() {
         if (db.config.targetSeconds > 0) {
@@ -425,8 +482,7 @@
         const newMark = { time: timeStr, seconds: parseFloat(seconds.toFixed(1)), sub: db.config.studyMode ? db.config.currentSub : 'Geral', color: db.config.color, result: '---' };
         currentMarks.unshift(newMark);
 
-        const isMobile = window.innerWidth <= 800;
-        const forceAsk = isMobile || document.getElementById('askAlways').checked;
+        const forceAsk = (window.innerWidth <= 800) || document.getElementById('askAlwaysDesk').checked;
 
         if (db.config.studyMode && forceAsk) {
             wasRunningBeforeUrna = (timerInterval !== null); 
@@ -436,7 +492,7 @@
             document.querySelectorAll('.blur-target').forEach(el => el.classList.add('active'));
         }
 
-        if (document.getElementById('autoReset').checked) { seconds = 0; updateDisplay(); }
+        if (document.getElementById('autoResetDesk').checked) { seconds = 0; updateDisplay(); }
         renderHistory();
     }
 
@@ -444,16 +500,13 @@
         currentMarks[0].result = res;
         closeUrnaUI();
         renderHistory(); updateTickerMetrics(currentMarks);
-        
-        if (document.getElementById('runForever').checked) startTimer();
+        if (document.getElementById('runForeverDesk').checked) startTimer();
     }
 
     function cancelUrna() {
-        currentMarks.shift(); 
-        closeUrnaUI();
+        currentMarks.shift(); closeUrnaUI();
         if(wasRunningBeforeUrna) startTimer(); 
-        renderHistory();
-        updateTickerMetrics(currentMarks);
+        renderHistory(); updateTickerMetrics(currentMarks);
     }
 
     function closeUrnaUI() {
@@ -493,11 +546,10 @@
     function resetApp() {
         seconds = 0; currentMarks = []; 
         document.getElementById('bottomColorBar').style.background = 'transparent';
-        document.getElementById('studyPanel').style.opacity = '1';
-        document.getElementById('studyPanel').style.pointerEvents = 'auto';
+        document.getElementById('studyPanel').style.opacity = '1'; document.getElementById('studyPanel').style.pointerEvents = 'auto';
+        document.getElementById('btnEditSetupMobile').disabled = false;
         document.getElementById('tickerContainer').style.display = 'none';
-        document.body.classList.remove('overtime');
-        document.body.classList.add('state-paused');
+        document.body.classList.remove('overtime'); document.body.classList.add('state-paused');
         updateDisplay(); renderHistory(); renderSidebar(); renderControls(false);
     }
 
